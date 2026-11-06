@@ -1,0 +1,1891 @@
+{
+  "name": "MonetusFinal",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3622f3cc-acef-4129-ab1d-d823148c63a7",
+              "name": "texto",
+              "value": "={{ $('Evolution').item.json.body.data.message.conversation }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1216,
+        80
+      ],
+      "id": "81ac8010-8c51-4ced-b329-b0f01a9d8c8a",
+      "name": "Edit Fields",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.texto }}",
+        "options": {
+          "systemMessage": "=🎯 Prompt do Agente Roteador — Monetus\n\nVocê é um **agente roteador inteligente** do TCC **Monetus**. Sua única função é interpretar a **mensagem do usuário enviada via WhatsApp**, identificar **qual ferramenta deve ser acionada** e **responder apenas com o retorno gerado pela ferramenta** correspondente.\n\n---\n\n🧰 Ferramentas disponíveis:\n\n- **Registrar Transacao**  \n  Para registrar uma transação única.  \n  **Exemplos:**  \n  > \"Comprei 1 pastel na feira de 11 reais\"\n  > \"Comprei um sofá no shopping por 700 reais\"\n  > \"Paguei 10\"  \n  > \"Gastei 50 reais com mercado hoje\"  \n  > \"Recebi 120 de um serviço de design\"\n  > \"Tenho uma conta de 200 mas ainda não está paga\"\n  > Ou ao receber ao informações de transação entenda como uma.\n\n- **Deletar**  \n  Para apagar uma transação.  \n  **Exemplos:**  \n  > \"Apaga o gasto com cinema de ontem\"  \n  > \"Remove aquela entrada de 30 reais que registrei por engano\"\n  > Ou se o usuário enviar um código de 5 digitos (EX : 1XNFP, BD8W6 etc.) \n\n- **Relatorios**  \n  Para gerar relatorios.  \n  **Exemplos:**  \n  > \"Quero um relatorio\"  \n  > \"Relatorios de hoje\"\n  > \"Quanto eu gastei essa semana\"\n\n- **Generico**  \n  Para perguntas gerais e fora do escopo financeiro direto.  \n  **Exemplos:**  \n  > \"Como o Monetus funciona?\"  \n  > \"Vocês têm suporte?\"  \n  > \"Consigo exportar meus dados?\"\n  > \"Me de dicas de investimento\"\n  > \"Quanto é XReais em XDólares\"\n  > \"Como posso tirar um cartão em X banco?\"\n  > \"Qual o X(Eletrodoméstico, Eletrônico Ou Utencílio) mais custo benefício\"\n\n---\n\n⚙️ Regras do Agente:\n\n1. Interprete a mensagem e acione **apenas a ferramenta correta**.\n2. **NÃO responda nada além do retorno da ferramenta acionada**.\n3. Responda somente a resposta retornada pela ferramenta.\n3. NÃO misture categorias, como lembretes e transações."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1936,
+        192
+      ],
+      "id": "8733059c-8929-4b26-9b52-a2e45bbf330c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ Boolean($json.user_id) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -912,
+        448
+      ],
+      "id": "8bc79078-744c-46f9-aab7-9f90d303798a",
+      "name": "É cadastrado?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ [true, 'true', 'ativo', 1].includes($('Buscar AccountId').item.json.tem_plano) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -512,
+        336
+      ],
+      "id": "b3d34021-d84a-4a91-ae68-7992002611e1",
+      "name": "Tem acesso?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Buscar AccountId').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "mensagens",
+              "fieldValue": "={{ (Number($('Buscar AccountId').item.json.mensagens) || 0) + 1 }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2512,
+        192
+      ],
+      "id": "10055407-e781-45c7-af53-39a221bcdb14",
+      "name": "Atualizar Transactions"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Evolution').item.json.body.data.messageType }}",
+                    "rightValue": "conversation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "6e954b35-6368-4ce8-a970-82a7da3f9938"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "conversation"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c8fae2b8-f0c1-4f46-9654-5b2d1e27ffc2",
+                    "leftValue": "={{ $('Evolution').item.json.body.data.messageType }}",
+                    "rightValue": "audioMessage",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "audioMessage"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5d935230-037e-48cc-b662-50122dbd9c3d",
+                    "leftValue": "={{ $('Evolution').item.json.body.data.messageType }}",
+                    "rightValue": "imageMessage",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "imageMessage"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        464,
+        80
+      ],
+      "id": "c258e558-f6a2-4812-aaf0-879df201a5e5",
+      "name": "messageType"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telefone",
+              "keyValue": "={{ $json.numero }}",
+              "condition": "eq"
+            }
+          ]
+        },
+        "returnAll": false,
+        "limit": 1,
+        "filterType": "manual",
+        "matchType": "allFilters"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1344,
+        448
+      ],
+      "id": "93503124-7ef8-47d5-bf1d-91bb59fba293",
+      "name": "Buscar AccountId",
+      "alwaysOutputData": true,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b66e53e5-82a4-494a-b942-47dce1ab6ada",
+              "name": "texto",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1472,
+        336
+      ],
+      "id": "9838ea1d-f8f3-408f-91dd-3701e7a314f7",
+      "name": "Edit Fields1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "af1eba45-6e41-4a6e-af4c-07935adfe9b6",
+              "name": "data",
+              "value": "={{ $json.data.base64 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        928,
+        336
+      ],
+      "id": "6c9aa475-70f7-4a9e-b668-56b4e3545144",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1296,
+        336
+      ],
+      "id": "7b623454-c24d-47c9-b2b2-3c2e5049d9ff",
+      "name": "OpenAI"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data",
+        "options": {
+          "mimeType": "audio/mpeg"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        336
+      ],
+      "id": "27856588-e55a-4897-83ee-95a52bde0fec",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "09b89327-2e4d-4436-b0bc-1c8069a0d7cd",
+              "name": "texto",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1472,
+        528
+      ],
+      "id": "4a18d4a9-8776-4028-8dcb-6fde51e27fc6",
+      "name": "Edit Fields4",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "af1eba45-6e41-4a6e-af4c-07935adfe9b6",
+              "name": "data",
+              "value": "={{ $json.data.base64 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        928,
+        528
+      ],
+      "id": "44f68f2f-1d04-4430-819d-eb23c275ceb7",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "Extraia apenas o texto visível da imagem enviada. Não adicione interpretações, descrições ou comentários. Retorne somente o texto puro exatamente como aparece na imagem.",
+        "inputType": "base64",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1296,
+        528
+      ],
+      "id": "026f2319-3c3d-4b1a-ab13-0dc58da8d232",
+      "name": "OpenAI1"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data",
+        "options": {
+          "mimeType": "image/jpeg"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        528
+      ],
+      "id": "9209fbab-04d3-4e3a-88bc-96ffb6b29a1a",
+      "name": "Convert to File1"
+    },
+    {
+      "parameters": {
+        "resource": "chat-api",
+        "operation": "get-media-base64",
+        "instanceName": "CONFIGURE_A_INSTANCIA",
+        "messageId": "={{ $('Evolution').item.json.body.data.key.id }}",
+        "convertToMp4": true
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        752,
+        336
+      ],
+      "id": "878b3e10-dadb-462e-8c26-dd5f56887a60",
+      "name": "Obter m dia em base64"
+    },
+    {
+      "parameters": {
+        "resource": "chat-api",
+        "operation": "get-media-base64",
+        "instanceName": "CONFIGURE_A_INSTANCIA",
+        "messageId": "={{ $('Evolution').item.json.body.data.key.id }}",
+        "convertToMp4": true
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        752,
+        528
+      ],
+      "id": "e3fb8f56-232c-4c8d-8fbd-8fd4a60d5b1f",
+      "name": "Obter m dia em base"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "CONFIGURE_A_INSTANCIA",
+        "remoteJid": "={{ $('Numero').item.json.numero }}",
+        "messageText": "={{ $json.output }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        2352,
+        192
+      ],
+      "id": "f4922345-3349-44ff-bada-fe34bdb634eb",
+      "name": "Enviar texto"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2624,
+        960
+      ],
+      "id": "a1c392a4-42ed-4887-a71b-de10d99b82c8",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "text": "={{ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=Você é um agente responsável por registrar transações financeiras.\n\nSempre que receber uma nova transação, siga os seguintes passos:\n\n1. **Registrar transação:** Após obter a categoria (ou definir como `\"Padrão\"`), use a tool `Registrar` para salvar a transação.\n\n### Formato de resposta (sempre que a transação for registrada com sucesso):\n\n\n✅ Transação registrada!\n\nID: {{ $('identificador').item.json.codigo }} | 💰 R${{valor}}(identifique o valor na mensagem) | {{emoji}}(**Legenda do emoji de tipo:**\n\n* 🔴 para **Despesa**\n* 🟢 para **Receita**) {{tipo}}(Se é uma saida ou uma entrada)\n📍 Onde: {{onde}}(Onde a compra foi feita EX: Cantina, supermercado etc. caso não encontre o local, insira \"Não foi possivel identificar o local\")\n📄 Descrição: {{descrição}}(Detalhado - se não informado crie)\n📅 Data: {{$data}}(Formato dd-mm-yyyy)\n📌 Status: Pago ou Pendente/Não pago\n\n❌ Para excluir, envie: {{ $('identificador').item.json.codigo }}\n```\n\n**Legenda do emoji de tipo:**\n\n* 🔴 para **Despesa**\n* 🟢 para **Receita**\n\nData/Hora Atual: {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        2272,
+        432
+      ],
+      "id": "78da8831-dc05-4b77-8034-af8b1fe0b7e0",
+      "name": "Registrar Transacao"
+    },
+    {
+      "parameters": {
+        "tableId": "transacoes",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "descricao",
+              "fieldValue": "={{ $fromAI('fieldValues0_Field_Value', `Descrição detalhada da transaçao`, 'string') }}"
+            },
+            {
+              "fieldId": "valor",
+              "fieldValue": "={{ $fromAI('fieldValues1_Field_Value', `Valor da transação`, 'string') }}"
+            },
+            {
+              "fieldId": "tipo",
+              "fieldValue": "={{ $fromAI('fieldValues2_Field_Value', `Tipo se é \"entrada\" ou \"saida\"`, 'string') }}"
+            },
+            {
+              "fieldId": "data",
+              "fieldValue": "={{ $fromAI('fieldValues3_Field_Value', `Data do evento no formato: yyyy-mm-dd`, 'string') }}"
+            },
+            {
+              "fieldId": "esta_pago",
+              "fieldValue": "={{ $fromAI('fieldValues4_Field_Value', `Se esta pago ou não: \"true\" ou \"false\"`, 'string') }}"
+            },
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('user_id').item.json.user_id }}"
+            },
+            {
+              "fieldId": "identificador",
+              "fieldValue": "={{ $('identificador').item.json.codigo }}"
+            },
+            {
+              "fieldId": "time",
+              "fieldValue": "={{ $now.toMillis() }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        2416,
+        560
+      ],
+      "id": "c141a10e-78cb-4050-adee-8794669aa78c",
+      "name": "Registrar"
+    },
+    {
+      "parameters": {
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=Você é o Agente Assistente Financeiro Monetus, um app inteligente para controle financeiro pessoal. Sua função é ajudar o usuário com tarefas como registrar transações (entradas e saídas), gerar relatórios financeiros resumidos, criar lembretes e responder dúvidas gerais sobre finanças. Seja claro, amigável, direto e proativo em sugerir ações úteis. Quando possível, use emojis para tornar a resposta mais leve e visual. Sempre mantenha o foco em facilitar a organização financeira do usuário.\nPara dicas de invstimento, conversão de moedas, como ajudar a pessoa a tirar cartões em bancos como Caixa, Santander E Parecidos, Recomendações de produtos custo-benefício(com uma média de preço Exemplo: X Celular tem úma media de R$1300-2000 Reais ) e coisas relacionadas, seja breve."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        2976,
+        432
+      ],
+      "id": "5c4057ce-44df-44a1-a5c8-bb293a68e18b",
+      "name": "Generico"
+    },
+    {
+      "parameters": {
+        "text": "={{ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=Você é um assistente responsável por **excluir transações do banco de dados**, com base nas mensagens enviadas pelo usuário.\n\n---\n\n### ✅ Suas responsabilidades:\n\n1. **Identificar o identificador da transação** na mensagem do usuário.\n\n   * O identificador é um código único de 5 digitos como `PGP57`, `XVI06`, `WPY12`, etc.\n\n2. **Se o identificador for encontrado**, utilize a ferramenta:\n\n   ```\n   Tool: Excluir\n   ```\n\n   * Envie o identificador como parâmetro para excluir a transação correspondente no banco de dados.\n\n3. Após a exclusão, **retorne a seguinte resposta formatada** com os dados da transação:\n\n```text\nFoi excluída a transação IDENTIFIER  \n🔖 *Descrição:* DESCRIPTION  \n💸 *Valor:* R$ AMOUNT\n```\n\n> **Substitua:**\n>\n> * `IDENTIFIER` pelo código da transação (ex: `PGP57`)\n> * `DESCRIPTION` pela descrição fornecida (ex: `Pagamento: R$199.`)\n> * `AMOUNT` pelo valor numérico com 2 casas decimais (ex: `199,00`)\n\n4. **Se nenhum identificador for encontrado**, **não execute nenhuma ação** e não retorne mensagem de exclusão.\n\n---\n\n### 🧾 Exemplo de mensagem do usuário:\n\n> \"Apagar a transação pgp57\"\n> \"WPY12\"(no caso apenas o identificador)\n\n→ O assistente deve:\n\n* Detectar o identificador: `{{ $('identificador').item.json.codigo }}`\n* Usar a tool `Excluir` com esse identificador\n* Retornar:\n\ntext\nFoi excluída a transação 'identificador'  \n🔖 *Descrição:* 'descrição'.  \n💸 *Valor:* R$ 'valor'\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        2624,
+        432
+      ],
+      "id": "1da4cea3-abbb-4695-83eb-0f1b6d4dd6b3",
+      "name": "Deletar"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "transacoes",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "={{ $('user_id').item.json.user_id }}"
+            },
+            {
+              "keyName": "identificador",
+              "condition": "eq",
+              "keyValue": "={{ $fromAI('conditions1_Field_Value', `Identificador da transacao`, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        2768,
+        544
+      ],
+      "id": "31b94aab-1ac4-4108-b447-751daa10263e",
+      "name": "Excluir"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "CONFIGURE_A_INSTANCIA",
+        "remoteJid": "={{ $('Numero').item.json.numero }}",
+        "messageText": "={{ $json.text }}",
+        "options_message": {
+          "delay": 3000,
+          "linkPreview": false
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        48,
+        672
+      ],
+      "id": "10826fb4-6589-40c9-8ac1-011be0e3597d",
+      "name": "Enviar texto1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().flatMap((item, index) => {\n  const key = item.json.body?.data?.key;\n  if (!key || key.fromMe) return [];\n  const jid = [key.remoteJid, key.remoteJidAlt, key.senderPn].find(value =>\n    typeof value === \"string\" && /^\\d{10,15}@s\\.whatsapp\\.net$/.test(value));\n  if (!jid || String(key.remoteJid).endsWith(\"@g.us\")) return [];\n  return [{ json: { numero: jid.split(\"@\")[0] }, pairedItem: { item: index } }];\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1568,
+        448
+      ],
+      "id": "08f1a66e-ff72-41da-9a5a-7c1c35385567",
+      "name": "Numero"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7f98ac95-b832-4085-871b-2a14d6cd0bde",
+              "name": "user_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1136,
+        448
+      ],
+      "id": "967bdd1e-879f-456e-b108-3d8d126703c5",
+      "name": "user_id"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1808,
+        400
+      ],
+      "id": "f97a5a87-8827-4773-b2a6-8d3856130ee8",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Função para gerar uma string aleatória com letras maiúsculas e números\nfunction gerarCodigo(tamanho) {\n  const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';\n  let resultado = '';\n  for (let i = 0; i < tamanho; i++) {\n    const index = Math.floor(Math.random() * caracteres.length);\n    resultado += caracteres[index];\n  }\n  return resultado;\n}\n\n// Retorna o código gerado no formato desejado\nreturn [\n  {\n    json: {\n      codigo: gerarCodigo(5),\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        96
+      ],
+      "id": "9e790b33-47b8-4e8a-b4ff-21d9eb3d9ebd",
+      "name": "identificador"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "CONFIGURE_A_INSTANCIA",
+        "remoteJid": "={{ $('Numero').item.json.numero }}",
+        "messageText": "👀 Vendo sua imagem...",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        560,
+        528
+      ],
+      "id": "b018a986-30b1-4296-87b0-129bce8cabe2",
+      "name": "Enviar texto3"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "transacoes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "={{ $('user_id').item.json.user_id }}"
+            }
+          ]
+        },
+        "filterType": "manual",
+        "matchType": "allFilters"
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        3456,
+        576
+      ],
+      "id": "4ece62af-2f84-405c-bc11-5e037c0f0743",
+      "name": "buscar_transacoes"
+    },
+    {
+      "parameters": {
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=Você é um agente responsável por gerar relatórios financeiros, **otimizado para WhatsApp**. Sempre que precisar gerar um relatório, siga os passos abaixo:\n>\n> 1. **Buscar transações:** Use a tool `buscar_transacoes` para obter as transações relevantes antes de gerar o relatório.\n> 2. **Gerar relatório:** Organize os dados recebidos em **mensagem legível para WhatsApp**, usando:\n>\n>    * Negrito (`*texto*`)\n>    * Itálico (`_texto_`)\n>    * Emojis para destacar informações importantes\n>    * Listas simples (`-` ou numeradas)\n> 3. **Formatar valores, datas e status:** Destaque números, datas e status com Markdown e emojis.\n> 4. **Adicionar observações e resumo:** Sempre finalize com insights ou recomendações breves.\n\n### Formato de resposta (WhatsApp-friendly)\n\nmarkdown\n✅ *Relatório Financeiro*\n\n*ID do Relatório:* {{id}}  \n*Tipo:* {{tipo}} {{emoji}}(*Legenda do emoji de tipo:*  \n- 🔴 Despesa  \n- 🟢 Receita  \n- 🟡 Outros)  \n*Valor Total:* R${{valor}}  \n*Data:* {{data}} (dd-mm-yyyy)\n\n📄 *Detalhes:*  \n{{descrição}} (Se não informado, criar uma descrição detalhada)\n\n📌 *Status:* {{status}} (Pago / Pendente / Em Análise)\n\n📝 *Observações:*  \n- _Inclua comentários ou recomendações relevantes aqui_\n\n*Legenda do emoji de tipo:*  \n- 🔴 Despesa  \n- 🟢 Receita  \n- 🟡 Outros\n\n\n### Regras adicionais:\n\n* Sempre utilize `buscar_transacoes` para obter as transações antes de gerar o relatório.\n* Se não houver transações, informe: *“Nenhuma transação encontrada para o período solicitado.”*\n* Cada transação encontrada deve ser listada separadamente, seguindo o formato acima, com os emojis correspondentes ao tipo.\n* Mantenha a mensagem **concisa, clara e legível no WhatsApp**.\n\nData/Hora atual: {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        3312,
+        432
+      ],
+      "id": "e8eda678-6e24-4096-8c44-d9805a05582d",
+      "name": "Relatorios"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.evento }}",
+                    "rightValue": "SALE_APPROVED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ad4c172f-52f6-46e9-b5e6-2dce75d6001b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Compra aprovada"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bdb78448-6a41-4387-b6f9-cb653cfd311a",
+                    "leftValue": "={{ $json.evento }}",
+                    "rightValue": "SUBSCRIPTION_RENEWED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Renovada"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7220f292-94b3-42a9-9271-0a199a58eff9",
+                    "leftValue": "={{ $json.evento }}",
+                    "rightValue": "SUBSCRIPTION_CANCELED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cancelado"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1312,
+        1552
+      ],
+      "id": "07fa9a2e-d6b4-40f8-8631-7b3421d68037",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "content": "# Texto/Audio/Imagem",
+        "height": 704,
+        "width": 1328,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        432,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "c89532d1-1287-4220-877b-a18f015d2647",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# Gerar identificador",
+        "height": 256,
+        "width": 352
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "d3ae1403-8467-4c9c-8a34-c41e3bbadc3e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "616e2670-b0e5-415d-9af7-3b6e9d04dddb",
+              "name": "text",
+              "value": "⚠️ Atenção! ⚠️   Detectamos que você atingiu o limite de transações do seu plano atual. 😔  Para continuar usando nossos serviços sem interrupções, recomendamos que você atualize seu plano para um que atenda melhor às suas necessidades. 🚀💳  Acesse o link abaixo para conferir as opções disponíveis e fazer o upgrade: 🔗 https://example.invalid/assinatura  Se precisar de ajuda, estou aqui para te auxiliar! 🖤",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -208,
+        432
+      ],
+      "id": "ccb5fb99-a49f-4e0a-9f51-7e4a3abc03ad",
+      "name": "atingiu limite"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "143d2810-1464-4302-b15b-1f1829808bf4",
+              "name": "text",
+              "value": "Oi! Sou seu assistente financeiro aqui na Monetus 🖤, pronto pra te ajudar a organizar a grana do jeito mais simples possível! Bora deixar sua vida financeira nos trilhos? Ah, e pode ficar tranquilo: se cadastre sempre → https://example.invalid/assinatura",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -528,
+        672
+      ],
+      "id": "acd6c1b9-969f-4c12-9f02-5a031027cd92",
+      "name": "sem cadastro"
+    },
+    {
+      "parameters": {
+        "content": "# Resposta whatsapp",
+        "height": 256,
+        "width": 384
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2304,
+        112
+      ],
+      "typeVersion": 1,
+      "id": "37281404-158e-48e0-b242-d407af189e04",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ Boolean($json.id) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -800,
+        1440
+      ],
+      "id": "0ab8a21d-744e-4d29-a4e2-1f52a2be9a72",
+      "name": "Se ja assinou"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('CheckTable').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "tem_plano",
+              "fieldValue": "true"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        1344
+      ],
+      "id": "d209a3bb-0933-41a8-b7e3-6bb54a817c88",
+      "name": "Check User"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "CONFIGURE_A_INSTANCIA",
+        "remoteJid": "={{ $('Separador').item.json.numero }}",
+        "messageText": "Você já comprou nosso bot! Seu acesso já está liberado 🚀",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        1344
+      ],
+      "id": "bdb07583-f9b1-47b3-8c19-ff20b55c05a0",
+      "name": "Se tentou assinar de novo"
+    },
+    {
+      "parameters": {
+        "tableId": "usuarios",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "nome",
+              "fieldValue": "={{ $('Separador').item.json.nome }}"
+            },
+            {
+              "fieldId": "telefone",
+              "fieldValue": "={{ $('Separador').item.json.numero }}"
+            },
+            {
+              "fieldId": "email",
+              "fieldValue": "={{ $('Separador').item.json.email }}"
+            },
+            {
+              "fieldId": "tem_plano",
+              "fieldValue": "true"
+            },
+            {
+              "fieldId": "mensagens",
+              "fieldValue": "0"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        1536
+      ],
+      "id": "05bf42de-5b71-4d6b-adbf-f10c2c461320",
+      "name": "Check User 2"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "CONFIGURE_A_INSTANCIA",
+        "remoteJid": "={{ $('Separador').item.json.numero }}",
+        "messageText": "🎉 Obrigado pela sua compra! Seu acesso ao nosso bot já está liberado 🚀",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        1536
+      ],
+      "id": "429af132-bc7b-4f4d-bcd3-f6ca9bf167d3",
+      "name": "Assinou SUC"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "keyValue": "={{ $json.email }}",
+              "condition": "eq"
+            }
+          ]
+        },
+        "returnAll": false,
+        "limit": 1,
+        "filterType": "manual",
+        "matchType": "allFilters"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1008,
+        1440
+      ],
+      "id": "a41e5698-4ae1-4853-a810-8774ee018619",
+      "name": "CheckTable",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "keyValue": "={{ $json.email }}",
+              "condition": "eq"
+            }
+          ]
+        },
+        "returnAll": false,
+        "limit": 1,
+        "filterType": "manual",
+        "matchType": "allFilters"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1008,
+        1744
+      ],
+      "id": "b0a5730e-dccf-4039-88fa-279544833cda",
+      "name": "Check Table 2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "tem_plano",
+              "fieldValue": "false"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        1744
+      ],
+      "id": "839cbded-a7c0-4c9f-83f5-7a35e115bc67",
+      "name": "Cancela Table"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "CONFIGURE_A_INSTANCIA",
+        "remoteJid": "={{ $('Separador').item.json.numero }}",
+        "messageText": "Você já vai? é uma pena não poder auxiliar suas finanças para você 😢",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        1744
+      ],
+      "id": "7598a140-bf17-4700-81cd-3855c80392f9",
+      "name": "Cancelamento MSG"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e411fe33-856f-4090-ada3-27038864c04d",
+              "name": "evento",
+              "value": "={{ $json.body?.event }}",
+              "type": "string"
+            },
+            {
+              "id": "a5124ee9-27f7-4110-9d86-8d80549b728c",
+              "name": "nome",
+              "value": "={{ $json.body?.customer?.name }}",
+              "type": "string"
+            },
+            {
+              "id": "75936929-4a0e-4965-95f8-e7f251492797",
+              "name": "email",
+              "value": "={{ String($json.body?.customer?.email ?? '').trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "8f585791-f7ab-495e-bb61-688a6a95a7e1",
+              "name": "numero",
+              "value": "={{ String($json.body?.customer?.phone_number ?? '').replace(/[^0-9]/g, '') }}",
+              "type": "string"
+            },
+            {
+              "id": "e5e20160-4446-44c8-9888-54136a46cfab",
+              "name": "plano",
+              "value": "={{ $json.body?.plan?.name }}",
+              "type": "string"
+            },
+            {
+              "id": "cb9ce48e-e4a4-42a5-8efd-c41ff0ef0c76",
+              "name": "next_charge_date",
+              "value": "={{ $json.body?.plan?.next_charge_date }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1520,
+        1568
+      ],
+      "id": "05d2049a-f2be-4310-96e3-adea02f047c3",
+      "name": "Separador"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "monetus-kirvano",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1728,
+        1568
+      ],
+      "id": "e281bfab-f263-419a-b793-3bc6ef7a7f0d",
+      "name": "Kirvano",
+      "webhookId": "7c012a98-e6d6-4b5a-9f54-077116cbcbe0"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "monetus-evolution",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1776,
+        448
+      ],
+      "id": "5a7df5dd-1e12-4dfd-a96d-c88995d60228",
+      "name": "Evolution",
+      "webhookId": "36a24059-bfed-41b6-9b8f-7bc0671dd73c"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        528
+      ],
+      "id": "0a8643ee-d5c6-4d98-9270-cead311354ad",
+      "name": "Pensa"
+    },
+    {
+      "parameters": {
+        "content": "# Cadastro do cliente",
+        "height": 720,
+        "width": 1728,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1808,
+        1232
+      ],
+      "typeVersion": 1,
+      "id": "e2e95b29-e277-48d8-857f-0083f27408ca",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "CONFIGURE_A_INSTANCIA",
+        "remoteJid": "={{ $('Numero').item.json.numero }}",
+        "messageText": "🦻Escutando seu áudio...",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        592,
+        336
+      ],
+      "id": "4373d4f9-42ea-476b-ae42-3e57cc3ebccd",
+      "name": "Enviar texto4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Enviar texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É cadastrado?": {
+      "main": [
+        [
+          {
+            "node": "Tem acesso?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "sem cadastro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem acesso?": {
+      "main": [
+        [
+          {
+            "node": "identificador",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "atingiu limite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "messageType": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar texto4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar texto3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar AccountId": {
+      "main": [
+        [
+          {
+            "node": "user_id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obter m dia em base64": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obter m dia em base": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar texto": {
+      "main": [
+        [
+          {
+            "node": "Atualizar Transactions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Registrar Transacao",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generico",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Deletar",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Relatorios",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Transacao": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar": {
+      "ai_tool": [
+        [
+          {
+            "node": "Registrar Transacao",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generico": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deletar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Excluir": {
+      "ai_tool": [
+        [
+          {
+            "node": "Deletar",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Numero": {
+      "main": [
+        [
+          {
+            "node": "Buscar AccountId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "user_id": {
+      "main": [
+        [
+          {
+            "node": "É cadastrado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "identificador": {
+      "main": [
+        [
+          {
+            "node": "messageType",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar texto3": {
+      "main": [
+        [
+          {
+            "node": "Obter m dia em base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_transacoes": {
+      "ai_tool": [
+        [
+          {
+            "node": "Relatorios",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relatorios": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "CheckTable",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CheckTable",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Table 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "atingiu limite": {
+      "main": [
+        [
+          {
+            "node": "Enviar texto1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sem cadastro": {
+      "main": [
+        [
+          {
+            "node": "Enviar texto1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Se ja assinou": {
+      "main": [
+        [
+          {
+            "node": "Check User",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check User 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check User": {
+      "main": [
+        [
+          {
+            "node": "Se tentou assinar de novo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check User 2": {
+      "main": [
+        [
+          {
+            "node": "Assinou SUC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckTable": {
+      "main": [
+        [
+          {
+            "node": "Se ja assinou",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Table 2": {
+      "main": [
+        [
+          {
+            "node": "Cancela Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancela Table": {
+      "main": [
+        [
+          {
+            "node": "Cancelamento MSG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separador": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kirvano": {
+      "main": [
+        [
+          {
+            "node": "Separador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evolution": {
+      "main": [
+        [
+          {
+            "node": "Numero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pensa": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar texto4": {
+      "main": [
+        [
+          {
+            "node": "Obter m dia em base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": 3600,
+    "availableInMCP": false,
+    "timezone": "America/Sao_Paulo",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": false,
+    "errorWorkflow": "S3gdwcXIA0SDcZrY",
+    "timeSavedPerExecution": 5
+  },
+  "tags": []
+}
